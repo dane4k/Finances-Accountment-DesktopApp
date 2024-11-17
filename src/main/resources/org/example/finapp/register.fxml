@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0"
+            prefWidth="1920.0" style="-fx-background-image: url('/org/example/images/sky.jpg');"
+            xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.finapp.controllers.RegisterController">
+    <children>
+        <Label contentDisplay="CENTER" layoutX="836.0" layoutY="390.0" prefHeight="47.0" prefWidth="308.0"
+               text="Имя пользователя" textFill="WHITE">
+            <font>
+                <Font size="32.0"/>
+            </font>
+        </Label>
+        <Label layoutX="837.0" layoutY="559.0" prefHeight="32.0" prefWidth="115.0" text="Пароль" textFill="WHITE">
+            <font>
+                <Font size="32.0"/>
+            </font>
+        </Label>
+        <TextField fx:id="userLogin" layoutX="837.0" layoutY="471.0" prefHeight="44.0" prefWidth="247.0"
+                   promptText="Имя пользователя">
+            <font>
+                <Font size="23.0"/>
+            </font>
+        </TextField>
+        <PasswordField fx:id="userPassword" layoutX="837.0" layoutY="629.0" prefHeight="44.0" prefWidth="247.0"
+                       promptText="Пароль">
+            <font>
+                <Font size="23.0"/>
+            </font>
+        </PasswordField>
+        <Label alignment="CENTER" layoutX="787.0" layoutY="187.0" text="Регистрация" textFill="WHITE">
+            <font>
+                <Font name="System Bold" size="60.0"/>
+            </font>
+        </Label>
+        <Button fx:id="registerButton" layoutX="837.0" layoutY="742.0" mnemonicParsing="false" prefHeight="79.0"
+                prefWidth="213.0" style="-fx-background-color: green;" text="Зарегистрироваться" textFill="WHITE">
+            <font>
+                <Font size="20.0"/>
+            </font>
+        </Button>
+        <Button fx:id="loginButton" onAction="#handleLoginButtonClick" layoutX="837.0" layoutY="852.0"
+                mnemonicParsing="false" prefHeight="73.0" prefWidth="213.0" style="-fx-background-color: blue;"
+                text="Войти" textFill="WHITE">
+            <font>
+                <Font size="22.0"/>
+            </font>
+        </Button>
+    </children>
+
+</AnchorPane>
