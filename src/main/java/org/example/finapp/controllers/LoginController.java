@@ -55,7 +55,7 @@ public class LoginController {
         try {
             if (dbHandler.checkPassword(username, password)) {
                 showAlert("Успех", "Вход выполнен");
-                clearFields();
+                redirectToHome();
             } else {
                 showAlert("Ошибка", "Неверное имя пользователя или пароль");
 
@@ -67,6 +67,22 @@ public class LoginController {
             e.printStackTrace();
         }
     }
+
+    private void redirectToHome() throws IOException {
+        Stage stage = (Stage) loginButton.getScene().getWindow();
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/finapp/home.fxml"));
+        Parent root = loader.load();
+
+        HomeController homeController = loader.getController();
+
+        homeController.setCurrentUser(userLogin.getText());
+
+
+        Scene scene = new Scene(root, 1920, 1080);
+        stage.setScene(scene);
+    }
+
+
 
 
     private void showAlert(String title, String content) {
