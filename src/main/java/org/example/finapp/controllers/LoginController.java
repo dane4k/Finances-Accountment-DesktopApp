@@ -19,8 +19,6 @@ public class LoginController {
     @FXML
     private Button loginButton;
 
-    @FXML
-    private Button registerButton;
 
     @FXML
     private TextField userLogin;
@@ -83,8 +81,6 @@ public class LoginController {
     }
 
 
-
-
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -93,9 +89,5 @@ public class LoginController {
         alert.showAndWait();
     }
 
-    private void clearFields() {
-        userLogin.clear();
-        userPassword.clear();
-    }
 
 }

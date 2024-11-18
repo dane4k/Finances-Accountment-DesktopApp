@@ -6,6 +6,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.effect.DropShadow?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0"
             prefWidth="1920.0" style="-fx-background-image: url('/org/example/images/sky.jpg');"
@@ -17,20 +18,26 @@
             <font>
                 <Font size="32.0"/>
             </font>
+            <effect>
+                <DropShadow radius="10.0" offsetX="5.0" offsetY="5.0" color="rgba(0, 0, 0, 0.5)"/>
+            </effect>
         </Label>
         <Label layoutX="837.0" layoutY="559.0" prefHeight="32.0" prefWidth="115.0" text="Пароль" textFill="WHITE">
             <font>
                 <Font size="32.0"/>
             </font>
+            <effect>
+                <DropShadow radius="10.0" offsetX="5.0" offsetY="5.0" color="rgba(0, 0, 0, 0.5)"/>
+            </effect>
         </Label>
         <TextField fx:id="userLogin" layoutX="837.0" layoutY="471.0" prefHeight="44.0" prefWidth="247.0"
-                   promptText="Имя пользователя">
+                   promptText="Имя пользователя" style="-fx-background-color: rgba(255, 255, 255, 0.8);">
             <font>
                 <Font size="23.0"/>
             </font>
         </TextField>
         <PasswordField fx:id="userPassword" layoutX="837.0" layoutY="629.0" prefHeight="44.0" prefWidth="247.0"
-                       promptText="Пароль">
+                       promptText="Пароль" style="-fx-background-color: rgba(255, 255, 255, 0.8);">
             <font>
                 <Font size="23.0"/>
             </font>
@@ -39,20 +46,30 @@
             <font>
                 <Font name="System Bold" size="60.0"/>
             </font>
+            <effect>
+                <DropShadow radius="10.0" offsetX="5.0" offsetY="5.0" color="rgba(0, 0, 0, 0.5)"/>
+            </effect>
         </Label>
-        <Button fx:id="registerButton" layoutX="837.0" layoutY="742.0" mnemonicParsing="false" prefHeight="79.0"
-                prefWidth="213.0" style="-fx-background-color: green;" text="Зарегистрироваться" textFill="WHITE">
+        <Button fx:id="registerButton" layoutX="846.0" layoutY="730.0" mnemonicParsing="false" prefHeight="79.0"
+                prefWidth="213.0" style="-fx-background-color: rgba(0, 128, 0, 0.8);" text="Зарегистрироваться"
+                textFill="WHITE">
             <font>
                 <Font size="20.0"/>
             </font>
+            <effect>
+                <DropShadow radius="5.0" offsetX="2.0" offsetY="2.0" color="rgba(0, 0, 0, 0.5)"/>
+            </effect>
         </Button>
-        <Button fx:id="loginButton" onAction="#handleLoginButtonClick" layoutX="837.0" layoutY="852.0"
-                mnemonicParsing="false" prefHeight="73.0" prefWidth="213.0" style="-fx-background-color: blue;"
+        <Button fx:id="loginButton" onAction="#handleLoginButtonClick" layoutX="846.0" layoutY="843.0"
+                mnemonicParsing="false" prefHeight="73.0" prefWidth="213.0"
+                style="-fx-background-color: rgba(0, 0, 255, 0.8);"
                 text="Войти" textFill="WHITE">
             <font>
                 <Font size="22.0"/>
             </font>
+            <effect>
+                <DropShadow radius="5.0" offsetX="2.0" offsetY="2.0" color="rgba(0, 0, 0, 0.5)"/>
+            </effect>
         </Button>
     </children>
-
 </AnchorPane>

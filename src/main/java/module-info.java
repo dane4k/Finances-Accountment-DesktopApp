@@ -9,5 +9,8 @@ module org.example.finapp {
     opens org.example.finapp to javafx.fxml;
     opens org.example.finapp.controllers to javafx.fxml;
     opens org.example.images;
+    opens org.example.finapp.models to javafx.base;
+
+
     exports org.example.finapp;
 }

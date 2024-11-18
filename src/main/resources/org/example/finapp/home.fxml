@@ -7,41 +7,47 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.finapp.controllers.HomeController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0"
+            prefWidth="1920.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.finapp.controllers.HomeController">
     <children>
-        <AnchorPane prefHeight="200.0" prefWidth="1920.0" style="-fx-background-color: gray;">
+        <AnchorPane prefHeight="200.0" prefWidth="1920.0" style="-fx-background-color: #688297;">
             <children>
-                <Label layoutX="266.0" layoutY="30.0" prefHeight="141.0" prefWidth="1417.0" text="Система управления личными финансами" textFill="WHITE">
+                <Label layoutX="266.0" layoutY="30.0" prefHeight="141.0" prefWidth="1417.0"
+                       text="Система управления личными финансами" textFill="WHITE">
                     <font>
-                        <Font name="Calibri Bold" size="53.0" />
+                        <Font name="Calibri Bold" size="48.0"/>
                     </font>
                 </Label>
-                <ImageView fitHeight="150.0" fitWidth="200.0" layoutX="24.0" layoutY="14.0" pickOnBounds="true" preserveRatio="true">
+                <ImageView fitHeight="150.0" fitWidth="200.0" layoutX="24.0" layoutY="14.0" pickOnBounds="true"
+                           preserveRatio="true">
                     <image>
-                        <Image url="@../images/logo.png" />
+                        <Image url="@../images/logo.png"/>
                     </image>
                 </ImageView>
-                <Label fx:id="usernameLabel" layoutX="1363.0" layoutY="36.0" prefHeight="129.0" prefWidth="314.0" text="Имя пользователя" textFill="WHITE">
+                <Label fx:id="usernameLabel" layoutX="1347.0" layoutY="36.0" prefHeight="129.0" prefWidth="314.0"
+                       text="Имя пользователя" textFill="WHITE">
                     <font>
-                        <Font name="System Bold" size="42.0" />
+                        <Font name="System Bold" size="39.0"/>
                     </font>
                 </Label>
-                <Button layoutX="1683.0" layoutY="36.0" mnemonicParsing="false" prefHeight="129.0" prefWidth="209.0" text="Выйти">
-                    <font>
-                        <Font size="49.0" />
-                    </font>
+                <Button fx:id="logoutButton" layoutX="1692.0" layoutY="71.0" mnemonicParsing="false"
+                        onAction="#redirectToLogin" prefHeight="60.0" prefWidth="150.0"
+                        style="-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-font-size: 18px; -fx-background-radius: 10;"
+                        text="Выйти">
                 </Button>
             </children>
         </AnchorPane>
-      <Button fx:id="transactionsButton" layoutX="85.0" layoutY="311.0" mnemonicParsing="false" prefHeight="302.0" prefWidth="691.0" text="Добавить доходы или расходы">
-         <font>
-            <Font size="44.0" />
-         </font>
-      </Button>
-      <Button fx:id="categoriesButton" onAction="#redirectToCategories" layoutX="1089.0" layoutY="311.0" mnemonicParsing="false" prefHeight="302.0" prefWidth="691.0" text="Добавить категорию доходов или расходов" textOverrun="WORD_ELLIPSIS">
-         <font>
-            <Font size="29.0" />
-         </font>
-      </Button>
+        <Button fx:id="transactionsButton" onAction="#redirectToTransactions" layoutX="85.0" layoutY="311.0"
+                mnemonicParsing="false" prefHeight="100.0"
+                prefWidth="691.0"
+                style="-fx-background-color: #3498DB; -fx-text-fill: white; -fx-font-size: 24px; -fx-background-radius: 10;"
+                text="Добавить доходы или расходы">
+        </Button>
+        <Button fx:id="categoriesButton" layoutX="1089.0" layoutY="311.0" mnemonicParsing="false"
+                onAction="#redirectToCategories" prefHeight="100.0" prefWidth="691.0"
+                style="-fx-background-color: #2ECC71; -fx-text-fill: white; -fx-font-size: 24px; -fx-background-radius: 10;"
+                text="Добавить категорию доходов или расходов" textOverrun="WORD_ELLIPSIS">
+        </Button>
     </children>
 </AnchorPane>
