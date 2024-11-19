@@ -1,0 +1,5 @@
+module:org.example.finapp
+org.example.finapp
+org.example.finapp.controllers
+org.example.finapp.database
+org.example.finapp.models

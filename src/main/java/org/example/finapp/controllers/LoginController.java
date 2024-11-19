@@ -30,6 +30,11 @@ public class LoginController {
     private DbHandler dbHandler = new DbHandler();
 
 
+    /**
+     * Редирект на регистрацию
+     *
+     * @throws IOException исключение для лоадера
+     */
     @FXML
     private void handleRegisterButtonClick() throws IOException {
         Stage stage = (Stage) loginButton.getScene().getWindow();
@@ -40,6 +45,10 @@ public class LoginController {
         stage.setScene(scene);
     }
 
+
+    /**
+     * обработка события входа юзера в систему
+     */
     @FXML
     private void logInUser() {
         String username = userLogin.getText();
@@ -66,6 +75,11 @@ public class LoginController {
         }
     }
 
+    /**
+     * редирект на домашнюю страницу
+     *
+     * @throws IOException исключение для лоадера
+     */
     private void redirectToHome() throws IOException {
         Stage stage = (Stage) loginButton.getScene().getWindow();
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/finapp/home.fxml"));
@@ -80,7 +94,12 @@ public class LoginController {
         stage.setScene(scene);
     }
 
-
+    /**
+     * алерт для ошибки или не ошибки
+     *
+     * @param title   название окна алерта
+     * @param content содержание ошибки или уведомления
+     */
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);

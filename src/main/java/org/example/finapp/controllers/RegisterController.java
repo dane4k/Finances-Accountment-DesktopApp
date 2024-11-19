@@ -34,6 +34,10 @@ public class RegisterController {
 
     }
 
+    /**
+     * обработчик логина
+     * @throws IOException
+     */
     @FXML
     private void handleLoginButtonClick() throws IOException {
         Stage stage = (Stage) loginButton.getScene().getWindow();

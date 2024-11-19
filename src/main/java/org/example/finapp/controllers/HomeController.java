@@ -43,12 +43,22 @@ public class HomeController {
     private String currentUsername;
 
 
+    /**
+     * установка имени пользователя в лейбл
+     *
+     * @param username имя пользователя
+     */
     public void setUsername(String username) {
         if (username != null) {
             usernameLabel.setText(username);
         }
     }
 
+    /**
+     * установка имени текущего пользователя
+     *
+     * @param username имя пользователя
+     */
     public void setCurrentUser(String username) {
         this.currentUsername = username;
         setUsername(username);
@@ -56,6 +66,11 @@ public class HomeController {
 
     }
 
+    /**
+     * обработчик для кнопки выхода из аккаунта
+     *
+     * @throws IOException исключение для лоадера
+     */
     @FXML
     private void redirectToLogin() throws IOException {
         Stage stage = (Stage) logoutButton.getScene().getWindow();
@@ -67,7 +82,11 @@ public class HomeController {
         stage.setScene(scene);
     }
 
-
+    /**
+     * обработчик для редиректа на страницу категорий
+     *
+     * @throws IOException исключение для лоадера
+     */
     @FXML
     private void redirectToCategories() throws IOException {
         Stage stage = (Stage) categoriesButton.getScene().getWindow();
@@ -83,6 +102,10 @@ public class HomeController {
         stage.setScene(scene);
     }
 
+
+    /**
+     * обработчик редиректа на страницу транзакций
+     */
     public void redirectToTransactions() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/finapp/transactions.fxml"));
@@ -107,6 +130,12 @@ public class HomeController {
         }
     }
 
+    /**
+     * уведомление об ошибке или не ошибке
+     *
+     * @param title   название окна
+     * @param content текст ошибки или не ошибки
+     */
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -115,6 +144,10 @@ public class HomeController {
         alert.showAndWait();
     }
 
+
+    /**
+     * заполнение диаграмм доходов и расходов за 30 дней через данные из метода в DbHandler
+     */
     private void loadCharts() {
         int userId;
         try (Connection connection = dbHandler.getDbConnection()) {

@@ -77,12 +77,19 @@ public class TransactionsController implements Initializable {
 
     private DbHandler dbHandler = new DbHandler();
 
-
+    /**
+     * инициализация страницы
+     * @param location для имплемента Initializable и инициализации страницы
+     * @param resources для имплемента Initializable и инициализации страницы
+     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         setupTransactionsTable();
     }
 
+    /**
+     * создание и заполнение таблицы данными и кнопками
+     */
     private void setupTransactionsTable() {
         actionsColumn.setCellFactory(_ -> new TableCell<>() {
             private final Button deleteButton = new Button("Удалить");
@@ -118,6 +125,9 @@ public class TransactionsController implements Initializable {
     }
 
 
+    /**
+     * обработка кнопки возврата на домашнюю страницу
+     */
     public void redirectToHomeButton() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/finapp/home.fxml"));
@@ -136,6 +146,11 @@ public class TransactionsController implements Initializable {
         }
     }
 
+
+    /**
+     * получение данных из таблицы бд transactions и заполнение таблицы fxml
+     * @throws SQLException исключение DbHandler
+     */
     private void loadTransactionsFromDatabase() throws SQLException {
         ObservableList<TransactionItem> transactions = FXCollections.observableArrayList();
 
@@ -165,17 +180,29 @@ public class TransactionsController implements Initializable {
         }
     }
 
+
+    /**
+     * показать/спрятать меню добавления транзакции
+     */
     @FXML
     public void toggleTransactionMenu() {
         addTransactionMenu.setVisible(!addTransactionMenu.isVisible());
     }
 
+    /**
+     * установка имени юзера в лейбл
+     * @param username имя пользователя
+     */
     public void setUsername(String username) {
         if (username != null) {
             usernameLabel.setText(username);
         }
     }
 
+    /**
+     * установка имени юзера в currentUsername
+     * @param username имя пользователя
+     */
     public void setCurrentUser(String username) {
         this.currentUsername = username;
         setUsername(username);
@@ -190,16 +217,26 @@ public class TransactionsController implements Initializable {
         }
     }
 
+
+    /**
+     * заполнение списка категориями по юзернейму через DbHandler
+     * @return список категорий
+     */
     private List<String> fetchCategoriesFromDatabase() {
         List<String> categories = new ArrayList<>();
         try (Connection connection = dbHandler.getDbConnection();) {
             dbHandler.fetchCategories(connection, currentUsername, categories);
         } catch (SQLException e) {
-            e.printStackTrace();
+            showAlert("Ошибка", "Ошибка при получении категорий");
         }
         return categories;
     }
 
+
+    /**
+     * добавление введенной транзакции в БД
+     * @throws SQLException исключение DbHandler
+     */
     @FXML
     private void addTransactionToDatabase() throws SQLException {
         String amountStr = enterAmountField.getText();
@@ -264,7 +301,9 @@ public class TransactionsController implements Initializable {
 
     }
 
-
+    /**
+     * очистка полей ввода и выбора после добавления транзакции
+     */
     private void clearAllInputFields() {
         enterAmountField.clear();
         enterDatePicker.setValue(null);
@@ -272,6 +311,11 @@ public class TransactionsController implements Initializable {
         categoryComboBox.getSelectionModel().clearSelection();
     }
 
+    /**
+     * уведомление
+     * @param title название
+     * @param content содержание
+     */
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -280,7 +324,11 @@ public class TransactionsController implements Initializable {
         alert.showAndWait();
     }
 
-
+    /**
+     * обработчик удаления транзакции
+     * @param transaction объект транзакции TransactionItem
+     * @throws SQLException исключение DbHandler
+     */
     private void deleteTransaction(TransactionItem transaction) throws SQLException {
         try (Connection connection = dbHandler.getDbConnection()) {
             dbHandler.deleteTransaction(connection, currentUsername, transaction);

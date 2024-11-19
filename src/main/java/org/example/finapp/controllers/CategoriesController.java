@@ -54,7 +54,11 @@ public class CategoriesController implements Initializable {
 
     private DbHandler dbHandler = new DbHandler();
 
-
+    /**
+     * инициализация страницы - заполнение таблицы данными и кнопками со стилем
+     * @param location для имплемента Initializable и инициализации страницы
+     * @param resources для имплемента Initializable и инициализации страницы
+     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         categoryNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
@@ -70,6 +74,11 @@ public class CategoriesController implements Initializable {
                 );
             }
 
+            /**
+             * Метод для создания кнопки удаления
+             * @param item
+             * @param empty
+             */
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
@@ -94,7 +103,9 @@ public class CategoriesController implements Initializable {
         }
     }
 
-
+    /**
+     * Возвращение на домашнюю страницу при нажатии на кнопку
+     */
     @FXML
     public void redirectToHomeButton() {
         try {
@@ -114,7 +125,11 @@ public class CategoriesController implements Initializable {
         }
     }
 
-
+    /**
+     * загрузка категорий из бд
+     *
+     * @throws SQLException
+     */
     private void loadCategoriesFromDatabase() throws SQLException {
         ObservableList<CategoryItem> categoriesItemList = FXCollections.observableArrayList();
 
@@ -138,19 +153,30 @@ public class CategoriesController implements Initializable {
         categoriesTable.setItems(categoriesItemList);
     }
 
+    /**
+     * Раскрытие меню добавления категории
+     */
     @FXML
     public void toggleCategoryMenu() {
         addCategoryMenu.setVisible(!addCategoryMenu.isVisible());
     }
 
-
+    /**
+     * установка юзернейма текущего пользователя в лейбл
+     *
+     * @param username имя пользователя
+     */
     public void setUsername(String username) {
         if (username != null) {
             usernameLabel.setText(username);
         }
     }
 
-
+    /**
+     * установка юзернейма текущего юзера в поле currentUsername
+     *
+     * @param username имя пользователя
+     */
     public void setCurrentUser(String username) {
         this.currentUsername = username;
         setUsername(username);
@@ -162,6 +188,10 @@ public class CategoriesController implements Initializable {
         }
     }
 
+
+    /**
+     * Добавление категории в базу данных через dbHandler
+     */
     @FXML
     public void addCategoryToDatabase() {
         String category = enterCategoryNameTF.getText();
@@ -183,6 +213,12 @@ public class CategoriesController implements Initializable {
     }
 
 
+    /**
+     * Алерт для ошибки или уведомления
+     *
+     * @param title   название окна
+     * @param content содержание окна
+     */
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -191,6 +227,12 @@ public class CategoriesController implements Initializable {
         alert.showAndWait();
     }
 
+
+    /**
+     * удаление категории через dbHandler
+     *
+     * @param category название категории
+     */
     @FXML
     public void deleteCategory(String category) {
         try {

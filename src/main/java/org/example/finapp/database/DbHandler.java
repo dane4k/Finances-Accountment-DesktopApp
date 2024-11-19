@@ -17,11 +17,21 @@ public class DbHandler {
     private static final String DB_USER = "postgres";
     private static final String DB_PASSWORD = "admin";
 
+
+    /**
+     * создание подключения к БД
+     * @return объект Connection
+     * @throws SQLException исключение
+     */
     public Connection getDbConnection() throws SQLException {
         return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
     }
 
-
+    /**
+     * проверка на уникальность ника при регистрации
+     * @param username никнейм
+     * @return уникален или нет
+     */
     public boolean isUsernameUnique(String username) {
         String select = "SELECT COUNT(*) FROM users WHERE username = ?";
 
@@ -41,7 +51,12 @@ public class DbHandler {
         return false;
     }
 
-
+    /**
+     * добавление категории в БД
+     * @param category название категории
+     * @param username имя пользователя
+     * @throws SQLException исключение
+     */
     public void addCategory(String category, String username) throws SQLException {
         String insert = "INSERT INTO categories (name, user_id) VALUES (?, ?)";
 
@@ -64,6 +79,13 @@ public class DbHandler {
         }
     }
 
+    /**
+     * получение id юзера по никнейму
+     * @param connection объект Connection для подключения
+     * @param username имя пользователя
+     * @return id пользователя
+     * @throws SQLException исключение
+     */
     public int getUserIdByUsername(Connection connection, String username) throws SQLException {
         String getUserId = "SELECT id FROM users WHERE username = ?";
         try (PreparedStatement getUserIdStmt = connection.prepareStatement(getUserId)) {
@@ -79,6 +101,11 @@ public class DbHandler {
         }
     }
 
+    /**
+     * добавление пользователя в БД
+     * @param username имя пользователя
+     * @param password пароль
+     */
     public void addUser(String username, String password) {
         String insert = "INSERT INTO users (username, password) VALUES (?, ?)";
 
@@ -96,6 +123,12 @@ public class DbHandler {
         }
     }
 
+    /**
+     * проверка пароля через unhash
+     * @param username имя пользователя
+     * @param password пароль
+     * @return совпадает ли пароль
+     */
     public boolean checkPassword(String username, String password) {
         String select = "SELECT password FROM users WHERE username = ?";
 
@@ -118,6 +151,12 @@ public class DbHandler {
         return false;
     }
 
+    /**
+     * удаление категории из БД
+     * @param category название категории
+     * @param username имя пользователя во избежание удаления категории с user_id == null (общая категория)
+     * @throws SQLException исключение
+     */
     public void deleteCategory(String category, String username) throws SQLException {
         String delete = "DELETE FROM categories WHERE name = ? AND user_id = ? AND user_id IS NOT NULL";
 
@@ -143,6 +182,14 @@ public class DbHandler {
         }
     }
 
+    /**
+     * заполнение списка категориям прикрепленным к юзеру и общими
+     * @param connection объект Connection для подключения
+     * @param username никнейм
+     * @param result список для заполнения
+     * @return список категорий
+     * @throws SQLException исключение
+     */
     public List<String> fetchCategories(Connection connection, String username, List<String> result) throws SQLException {
         String getAllCategories = "SELECT name FROM categories WHERE user_id = ? OR user_id IS NULL";
         try {
@@ -166,6 +213,16 @@ public class DbHandler {
         return result;
     }
 
+    /**
+     * Добавление транзакции в БД
+     * @param connection объект Connection для подключения
+     * @param userId id пользователя
+     * @param amount сумма транзакции
+     * @param date дата транзакции
+     * @param type тип транзакции (расход/доход)
+     * @param categoryId id категории
+     * @throws SQLException исключение
+     */
     public void addTransaction(Connection connection, int userId, Double amount, LocalDate date, boolean type, int categoryId) throws SQLException {
         String insert = "INSERT INTO transactions (user_id, amount, date, income, category_id) VALUES (?, ?, ?, ?, ?)";
 
@@ -183,6 +240,13 @@ public class DbHandler {
         }
     }
 
+    /**
+     * Получение id категории по названию
+     * @param connection объект Connection для подключения
+     * @param category название категории
+     * @return id категории
+     * @throws SQLException исключение
+     */
     public int getCategoryIdByCategoryName(Connection connection, String category) throws SQLException {
         String getCategoryId = "SELECT id FROM categories WHERE name = ?";
         try (PreparedStatement getCategoryIdStmt = connection.prepareStatement(getCategoryId)) {
@@ -197,21 +261,23 @@ public class DbHandler {
         }
     }
 
+
+    /**
+     * Заполнение списка транзакциями
+     * @param connection объект Connection для подключения
+     * @param username имя пользователя
+     * @return список транзакций по юзернейму
+     * @throws SQLException исключение
+     */
     public List<TransactionItem> fetchTransactions(Connection connection, String username) throws SQLException {
         List<TransactionItem> transactions = new ArrayList<>();
-
-        String userQuery = "SELECT id FROM users WHERE username = ?";
-        int userId = -1;
-
-        try (PreparedStatement userStatement = connection.prepareStatement(userQuery)) {
-            userStatement.setString(1, username);
-            ResultSet userResultSet = userStatement.executeQuery();
-
-            if (userResultSet.next()) {
-                userId = userResultSet.getInt("id");
-            } else {
-                return transactions;
-            }
+        int userId;
+        try {
+            userId = getUserIdByUsername(connection, username);
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+            return null;
         }
 
         String query = "SELECT t.id, t.amount, t.date, t.income, t.category_id, c.name AS category_name " +
@@ -240,7 +306,13 @@ public class DbHandler {
         return transactions;
     }
 
-
+    /**
+     * удаление транзакции из БД
+     * @param connection объект Connection для подключения
+     * @param username имя пользователя
+     * @param transaction объект TransactionItem
+     * @throws SQLException исключение
+     */
     public void deleteTransaction(Connection connection, String username, TransactionItem transaction) throws SQLException {
         String deleteQuery = "DELETE FROM transactions WHERE user_id = ? AND amount = ? AND date = ? AND income = ?";
 
