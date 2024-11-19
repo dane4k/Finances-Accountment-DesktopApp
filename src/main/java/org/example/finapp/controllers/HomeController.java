@@ -1,15 +1,20 @@
 package org.example.finapp.controllers;
 
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.chart.PieChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
+import org.example.finapp.database.DbHandler;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public class HomeController {
 
@@ -26,6 +31,14 @@ public class HomeController {
     @FXML
     private Button logoutButton;
 
+    @FXML
+    private PieChart expensesPieChart;
+
+    @FXML
+    private PieChart incomePieChart;
+
+
+    private DbHandler dbHandler = new DbHandler();
 
     private String currentUsername;
 
@@ -39,6 +52,8 @@ public class HomeController {
     public void setCurrentUser(String username) {
         this.currentUsername = username;
         setUsername(username);
+        loadCharts();
+
     }
 
     @FXML
@@ -98,6 +113,30 @@ public class HomeController {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
+    }
+
+    private void loadCharts() {
+        int userId;
+        try (Connection connection = dbHandler.getDbConnection()) {
+            try {
+                userId = dbHandler.getUserIdByUsername(connection, currentUsername);
+            } catch (SQLException e) {
+                showAlert("Ошибка", "Пользователь не найден");
+                return;
+            }
+
+            ObservableList<PieChart.Data> expensesData = dbHandler.getTransactionsData(connection, false, userId);
+            expensesPieChart.setData(expensesData);
+            expensesPieChart.setTitle("Расходы за последние 30 дней");
+
+            ObservableList<PieChart.Data> incomeData = dbHandler.getTransactionsData(connection, true, userId);
+            incomePieChart.setData(incomeData);
+            incomePieChart.setTitle("Доходы за последние 30 дней");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert("Ошибка", "Ошибка при загрузке диаграмм");
+        }
     }
 
 

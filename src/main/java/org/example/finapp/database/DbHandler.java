@@ -1,6 +1,9 @@
 package org.example.finapp.database;
 
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.chart.PieChart;
 import org.example.finapp.models.TransactionItem;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -251,6 +254,32 @@ public class DbHandler {
 
             statement.executeUpdate();
         }
+    }
+
+    public ObservableList<PieChart.Data> getTransactionsData(Connection conn, boolean isIncome, int userID) throws SQLException {
+        ObservableList<PieChart.Data> data = FXCollections.observableArrayList();
+
+        String sql = "SELECT c.name AS category_name, SUM(t.amount) AS total_amount FROM transactions t JOIN categories c ON t.category_id = c.id " +
+                "WHERE t.user_id = ? " +
+                "  AND t.income = ? " +
+                "  AND t.date >= ? " +
+                "GROUP BY c.name";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, userID);
+            pstmt.setBoolean(2, isIncome);
+            pstmt.setDate(3, Date.valueOf(LocalDate.now().minusDays(30)));
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    String categoryName = rs.getString("category_name");
+                    double totalAmount = rs.getDouble("total_amount");
+                    data.add(new PieChart.Data(categoryName, totalAmount));
+                }
+            }
+        }
+
+        return data;
     }
 
 
