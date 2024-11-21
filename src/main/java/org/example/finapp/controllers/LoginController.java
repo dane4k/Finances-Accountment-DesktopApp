@@ -85,7 +85,7 @@ public class LoginController {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/finapp/home.fxml"));
         Parent root = loader.load();
 
-        HomeController homeController = loader.getController();
+        THomeController homeController = loader.getController();
 
         homeController.setCurrentUser(userLogin.getText());
 

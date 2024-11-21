@@ -10,8 +10,8 @@
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0"
             prefWidth="1920.0" style="-fx-background-image: url('/org/example/images/sky.jpg');"
-            xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.example.finapp.controllers.LoginController">
+            xmlns="http://javafx.com/javafx/17.0.6" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.finapp.controllers.AuthController">
 
     <Label contentDisplay="CENTER" layoutX="836.0" layoutY="390.0" prefHeight="47.0" prefWidth="308.0"
            text="Имя пользователя" textFill="WHITE">
@@ -50,7 +50,7 @@
             <DropShadow offsetX="5.0" offsetY="5.0" color="rgba(0, 0, 0, 0.5)"/>
         </effect>
     </Label>
-    <Button fx:id="registerButton" onAction="#handleRegisterButtonClick" layoutX="846.0" layoutY="843.0"
+    <Button fx:id="registerButton" onAction="#redirectToRegister" layoutX="846.0" layoutY="843.0"
             mnemonicParsing="false" prefHeight="79.0" prefWidth="213.0"
             style="-fx-background-color: rgba(0, 0, 255, 0.8);"
             text="Зарегистрироваться" textFill="WHITE">

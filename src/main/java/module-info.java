@@ -4,6 +4,8 @@ module org.example.finapp {
     requires java.desktop;
     requires java.sql;
     requires jbcrypt;
+    requires org.json;
+    requires okhttp3;
 
 
     opens org.example.finapp to javafx.fxml;

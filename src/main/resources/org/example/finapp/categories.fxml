@@ -12,7 +12,7 @@
 <?import javafx.scene.text.Font?>
 
 <AnchorPane prefHeight="1920" prefWidth="2222.0" style="-fx-background-color: #f4f4f4;"
-            xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/17.0.6" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.example.finapp.controllers.CategoriesController">
     <Label fx:id="usernameLabel" layoutX="1194.0" layoutY="22.0" prefHeight="141.0" prefWidth="197.0"
            text="Имя пользователя" textFill="#333333">

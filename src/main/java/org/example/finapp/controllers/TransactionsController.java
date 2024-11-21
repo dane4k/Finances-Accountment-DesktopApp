@@ -133,7 +133,7 @@ public class TransactionsController implements Initializable {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/finapp/home.fxml"));
             Parent root = loader.load();
 
-            HomeController homeController = loader.getController();
+            THomeController homeController = loader.getController();
             homeController.setCurrentUser(currentUsername);
 
             Stage stage = (Stage) goHomeButton.getScene().getWindow();
