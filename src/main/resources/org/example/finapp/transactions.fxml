@@ -109,7 +109,7 @@
         </columns>
     </TableView>
 
-    <Button fx:id="goHomeButton" onAction="#redirectToHomeButton" layoutX="1493.0" layoutY="163.0"
+    <Button fx:id="goHomeButton" onAction="#goHome" layoutX="1493.0" layoutY="163.0"
             mnemonicParsing="false" prefHeight="117.0" prefWidth="344.0 "
             style="-fx-background-color: #ff3030; -fx-text-fill: white;" text="На главную" textFill="WHITE">
         <font>

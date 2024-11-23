@@ -5,166 +5,121 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import org.example.finapp.database.DbHandler;
-import org.example.finapp.models.CategoryItem;
+import javafx.util.Callback;
+import org.example.finapp.APIInteraction.ClientCategoryApi;
+import org.example.finapp.models.CategoryDTO;
 
 import java.io.IOException;
-import java.net.URL;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ResourceBundle;
+import java.util.List;
+import java.util.Objects;
 
-
-public class CategoriesController implements Initializable {
-
+public class CategoriesController {
 
     @FXML
-    private Label usernameLabel;
-
+    private TableView<String> categoriesTable;
+    @FXML
+    private TableColumn<String, String> categoryNameColumn;
+    @FXML
+    private Button addCategoryButton;
+    @FXML
+    private TextField enterCategoryNameTF;
+    @FXML
+    private TextField usernameTF;
 
     @FXML
     private VBox addCategoryMenu;
 
     @FXML
-    private TextField enterCategoryNameTF;
-
-
-    @FXML
-    private TableView<CategoryItem> categoriesTable;
-
-    @FXML
-    private TableColumn<CategoryItem, String> categoryNameColumn;
-
-    @FXML
-    private TableColumn<CategoryItem, Void> actionsColumn;
-
-    @FXML
     private Button goHomeButton;
 
+    @FXML
+    private Label usernameLabel;
 
+    @FXML
+    private Button openAddCategoryMenu;
+
+    @FXML
+    private TableColumn<String, String> actionsColumn;
+
+    private ClientCategoryApi clientCategoryApi = new ClientCategoryApi();
     private String currentUsername;
+    private ObservableList<String> observableList;
 
-    private DbHandler dbHandler = new DbHandler();
 
     /**
-     * инициализация страницы - заполнение таблицы данными и кнопками со стилем
-     * @param location для имплемента Initializable и инициализации страницы
-     * @param resources для имплемента Initializable и инициализации страницы
+     * заполнение таблицы и создание кнопки
      */
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        categoryNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getName()));
+    @FXML
+    public void initialize() {
+        categoryNameColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue()));
 
-        actionsColumn.setCellFactory(_ -> new TableCell<>() {
-            private final Button deleteButton = new Button("Удалить");
-
-            {
-                deleteButton.setStyle(
-                        "-fx-background-color: red;" +
-                                "-fx-text-fill: white;" +
-                                "-fx-font-weight: bold;"
-                );
-            }
-
-            /**
-             * Метод для создания кнопки удаления
-             * @param item
-             * @param empty
-             */
+        actionsColumn.setCellFactory(new Callback<TableColumn<String, String>, TableCell<String, String>>() {
             @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    CategoryItem categoryItem = getTableView().getItems().get(getIndex());
-                    if (categoryItem.isDeletable()) {
-                        setGraphic(deleteButton);
-                        deleteButton.setOnAction(_ -> deleteCategory(categoryItem.getName()));
-                    } else {
-                        setGraphic(null);
+            public TableCell<String, String> call(TableColumn<String, String> param) {
+                return new TableCell<String, String>() {
+                    private final Button deleteButton = new Button("Удалить");
+
+                    {
+                        deleteButton.setStyle("-fx-background-color: #ff3030; -fx-text-fill: white;");
+                        deleteButton.setOnAction(event -> {
+                            String categoryName = getTableView().getItems().get(getIndex());
+                            deleteCategory(categoryName);
+                        });
                     }
-                }
+
+                    @Override
+                    protected void updateItem(String item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty) {
+                            setGraphic(null);
+                        } else {
+                            setGraphic(deleteButton);
+                        }
+                    }
+                };
             }
         });
 
-        try {
-            loadCategoriesFromDatabase();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        observableList = FXCollections.observableArrayList();
+        categoriesTable.setItems(observableList);
+        loadCategories();
     }
 
-    /**
-     * Возвращение на домашнюю страницу при нажатии на кнопку
-     */
-    @FXML
-    public void redirectToHomeButton() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/finapp/home.fxml"));
-            Parent root = loader.load();
-
-            THomeController homeController = loader.getController();
-            homeController.setCurrentUser(currentUsername);
-
-            Stage stage = (Stage) goHomeButton.getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.show();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Ошибка", "Не удалось загрузить главную страницу");
-        }
-    }
 
     /**
-     * загрузка категорий из бд
-     *
-     * @throws SQLException
-     */
-    private void loadCategoriesFromDatabase() throws SQLException {
-        ObservableList<CategoryItem> categoriesItemList = FXCollections.observableArrayList();
-
-        String query = "SELECT name, user_id IS NOT NULL as is_deletable FROM categories WHERE user_id IS NULL OR user_id = ?";
-
-        try (Connection connection = dbHandler.getDbConnection();
-             PreparedStatement stmt = connection.prepareStatement(query)) {
-
-            int userId = dbHandler.getUserIdByUsername(connection, currentUsername);
-            stmt.setInt(1, userId);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    String categoryName = rs.getString("name");
-                    boolean isDeletable = rs.getBoolean("is_deletable");
-                    categoriesItemList.add(new CategoryItem(categoryName, isDeletable));
-                }
-            }
-        }
-
-        categoriesTable.setItems(categoriesItemList);
-    }
-
-    /**
-     * Раскрытие меню добавления категории
+     * раскрытие меню добавления категории при нажатии на кнопку
      */
     @FXML
     public void toggleCategoryMenu() {
         addCategoryMenu.setVisible(!addCategoryMenu.isVisible());
     }
 
+
     /**
-     * установка юзернейма текущего пользователя в лейбл
-     *
-     * @param username имя пользователя
+     * редирект на домашнюю
+     * @throws IOException
+     */
+    @FXML
+    public void goHome() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/finapp/home.fxml"));
+        Parent root = loader.load();
+
+        HomeController homeController = loader.getController();
+        homeController.setCurrentUser(currentUsername);
+
+        Stage stage = (Stage) goHomeButton.getScene().getWindow();
+        stage.setScene(new Scene(root));
+        stage.show();
+    }
+
+    /**
+     * сет юзернейма в лейбл
+     * @param username
      */
     public void setUsername(String username) {
         if (username != null) {
@@ -173,50 +128,87 @@ public class CategoriesController implements Initializable {
     }
 
     /**
-     * установка юзернейма текущего юзера в поле currentUsername
-     *
-     * @param username имя пользователя
+     * сет текущего юзера и обновление таблицы
+     * @param username
      */
     public void setCurrentUser(String username) {
         this.currentUsername = username;
         setUsername(username);
+        loadCategories();
+    }
 
+    /**
+     * заполнение observableList для таблицы
+     */
+    private void loadCategories() {
         try {
-            loadCategoriesFromDatabase();
-        } catch (SQLException e) {
+            List<CategoryDTO> categories = clientCategoryApi.getCategories(currentUsername);
+            observableList.clear();
+
+            for (CategoryDTO category : categories) {
+                if (!observableList.contains(category.getName())) {
+                    observableList.add(category.getName());
+                }
+            }
+        } catch (IOException e) {
+            showAlert("Ошибка", "Не удалось загрузить категории");
             e.printStackTrace();
         }
     }
 
-
     /**
-     * Добавление категории в базу данных через dbHandler
+     * добавление категории
      */
     @FXML
-    public void addCategoryToDatabase() {
-        String category = enterCategoryNameTF.getText();
-
-        if (category == null) {
-            showAlert("Ошибка", "Вы не ввели название категории");
+    public void addCategory() {
+        String categoryName = enterCategoryNameTF.getText();
+        if (categoryName.isEmpty()) {
+            showAlert("Ошибка", "Введите название категории");
             return;
         }
 
         try {
-            dbHandler.addCategory(category, currentUsername);
+            CategoryDTO categoryDTO = new CategoryDTO();
+            categoryDTO.setName(categoryName);
+            String responseMessage = clientCategoryApi.addCategory(currentUsername, categoryDTO);
+            showAlert("Результат", responseMessage);
+            loadCategories();
             enterCategoryNameTF.clear();
-            showAlert("успешно", "категория добавлена");
-            loadCategoriesFromDatabase();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (IOException e) {
             showAlert("Ошибка", "Не удалось добавить категорию");
+            e.printStackTrace();
         }
     }
 
+    /**
+     * удаление категории
+     * @param categoryName
+     */
+    @FXML
+    public void deleteCategory(String categoryName) {
+        if (categoryName == null) {
+            showAlert("Ошибка", "Выберите категорию для удаления");
+            return;
+        }
+
+        try {
+            String responseMessage = clientCategoryApi.deleteCategory(currentUsername, categoryName);
+            if (!Objects.equals(responseMessage, "Категория удалена")) {
+                responseMessage = "Вы не можете удалить общую категорию";
+            }
+            showAlert("Результат", responseMessage);
+            observableList.remove(categoryName);
+            categoriesTable.refresh();
+            loadCategories();
+        } catch (IOException e) {
+            showAlert("Ошибка", "Не удалось удалить категорию");
+            e.printStackTrace();
+        }
+    }
 
     /**
-     * Алерт для ошибки или уведомления
-     *
-     * @param title   название окна
+     * алерт для информации и не информации
+     * @param title имя окна
      * @param content содержание окна
      */
     private void showAlert(String title, String content) {
@@ -226,23 +218,4 @@ public class CategoriesController implements Initializable {
         alert.setContentText(content);
         alert.showAndWait();
     }
-
-
-    /**
-     * удаление категории через dbHandler
-     *
-     * @param category название категории
-     */
-    @FXML
-    public void deleteCategory(String category) {
-        try {
-            dbHandler.deleteCategory(category, currentUsername);
-            loadCategoriesFromDatabase();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Ошибка", "Не удалось удалить категорию");
-        }
-    }
-
-
 }

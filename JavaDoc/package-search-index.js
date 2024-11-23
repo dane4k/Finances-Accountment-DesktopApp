@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"m":"org.example.finapp","l":"org.example.finapp"},{"m":"org.example.finapp","l":"org.example.finapp.controllers"},{"m":"org.example.finapp","l":"org.example.finapp.database"},{"m":"org.example.finapp","l":"org.example.finapp.models"}];updateSearchResults();

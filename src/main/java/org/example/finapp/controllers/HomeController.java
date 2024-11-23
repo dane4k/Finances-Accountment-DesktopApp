@@ -1,22 +1,22 @@
 package org.example.finapp.controllers;
 
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
-import org.example.finapp.database.DbHandler;
+import org.example.finapp.APIInteraction.ClientDiagramApi;
+import org.example.finapp.utils.SceneUtil;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
+import java.util.Map;
 
-public class HomeController {
+public class HomeController implements SampleController {
 
 
     @FXML
@@ -38,87 +38,64 @@ public class HomeController {
     private PieChart incomePieChart;
 
 
-    private DbHandler dbHandler = new DbHandler();
-
     private String currentUsername;
+    private ClientDiagramApi clientDiagramApi = new ClientDiagramApi();
+    SceneUtil sceneUtil = new SceneUtil();
 
 
     /**
-     * установка имени пользователя в лейбл
-     *
-     * @param username имя пользователя
+     * сет текущего юзера
+     * @param username ник
      */
-    public void setUsername(String username) {
-        if (username != null) {
-            usernameLabel.setText(username);
+    @Override
+    public void setCurrentUser(String username) {
+        this.currentUsername = username;
+        usernameLabel.setText(username);
+        loadCharts();
+    }
+
+    /**
+     * редирект на логин при выходе
+     * @throws IOException
+     */
+    @FXML
+    private void redirectToLogin() throws IOException {
+        sceneUtil.navigateTo(logoutButton, "login", null);
+    }
+
+    /**
+     * редирект в категории
+     * @throws IOException
+     */
+    @FXML
+    private void redirectToCategories() throws IOException {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/finapp/categories.fxml"));
+            Parent root = loader.load();
+
+            CategoriesController categoriesController = loader.getController();
+            categoriesController.setCurrentUser(currentUsername);
+
+            Stage stage = (Stage) categoriesButton.getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     /**
-     * установка имени текущего пользователя
-     *
-     * @param username имя пользователя
+     * редирект в транзакции
+     * @throws IOException
      */
-    public void setCurrentUser(String username) {
-        this.currentUsername = username;
-        setUsername(username);
-        loadCharts();
-
-    }
-
-    /**
-     * обработчик для кнопки выхода из аккаунта
-     *
-     * @throws IOException исключение для лоадера
-     */
-    @FXML
-    private void redirectToLogin() throws IOException {
-        Stage stage = (Stage) logoutButton.getScene().getWindow();
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/finapp/login.fxml"));
-        Parent root = loader.load();
-
-        Scene scene = new Scene(root, 1920, 1080);
-
-        stage.setScene(scene);
-    }
-
-    /**
-     * обработчик для редиректа на страницу категорий
-     *
-     * @throws IOException исключение для лоадера
-     */
-    @FXML
-    private void redirectToCategories() throws IOException {
-        Stage stage = (Stage) categoriesButton.getScene().getWindow();
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/finapp/categories.fxml"));
-        Parent root = loader.load();
-
-        CategoriesController categoriesController = loader.getController();
-
-        categoriesController.setCurrentUser(usernameLabel.getText());
-
-
-        Scene scene = new Scene(root, 1920, 1080);
-        stage.setScene(scene);
-    }
-
-
-    /**
-     * обработчик редиректа на страницу транзакций
-     */
-    public void redirectToTransactions() {
+    public void redirectToTransactions() throws IOException {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/finapp/transactions.fxml"));
             Parent root = loader.load();
 
-            TransactionsController transactionsController = loader.getController();
-
-
-            if (currentUsername != null) {
-                transactionsController.setCurrentUser(currentUsername);
-            } else {
-                System.out.println("юзернейм null");
-            }
+            TransactionsController TransactionsController = loader.getController();
+            TransactionsController.setCurrentUser(currentUsername);
 
             Stage stage = (Stage) transactionsButton.getScene().getWindow();
             stage.setScene(new Scene(root));
@@ -126,49 +103,39 @@ public class HomeController {
 
         } catch (IOException e) {
             e.printStackTrace();
-            showAlert("Ошибка", "Не удалось загрузить страницу транзакций");
         }
     }
 
     /**
-     * уведомление об ошибке или не ошибке
-     *
-     * @param title   название окна
-     * @param content текст ошибки или не ошибки
-     */
-    private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
-
-
-    /**
-     * заполнение диаграмм доходов и расходов за 30 дней через данные из метода в DbHandler
+     * загрузка и заполнение диаграмм
      */
     private void loadCharts() {
-        int userId;
-        try (Connection connection = dbHandler.getDbConnection()) {
-            try {
-                userId = dbHandler.getUserIdByUsername(connection, currentUsername);
-            } catch (SQLException e) {
-                showAlert("Ошибка", "Пользователь не найден");
-                return;
-            }
+        try {
+            Map<String, Map<String, Double>> stats = clientDiagramApi.getTransactionStats(currentUsername);
 
-            ObservableList<PieChart.Data> expensesData = dbHandler.getTransactionsData(connection, false, userId);
+            ObservableList<PieChart.Data> expensesData = FXCollections.observableArrayList();
+            Map<String, Double> expenses = stats.get("expenses");
+            if (expenses != null) {
+                for (Map.Entry<String, Double> entry : expenses.entrySet()) {
+                    expensesData.add(new PieChart.Data(entry.getKey(), entry.getValue()));
+                }
+            }
             expensesPieChart.setData(expensesData);
             expensesPieChart.setTitle("Расходы за последние 30 дней");
 
-            ObservableList<PieChart.Data> incomeData = dbHandler.getTransactionsData(connection, true, userId);
+            ObservableList<PieChart.Data> incomeData = FXCollections.observableArrayList();
+            Map<String, Double> income = stats.get("income");
+            if (income != null) {
+                for (Map.Entry<String, Double> entry : income.entrySet()) {
+                    incomeData.add(new PieChart.Data(entry.getKey(), entry.getValue()));
+                }
+            }
             incomePieChart.setData(incomeData);
             incomePieChart.setTitle("Доходы за последние 30 дней");
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Ошибка", "Ошибка при загрузке диаграмм");
+
+        } catch (IOException e) {
+            sceneUtil.showAlert("Ошибка", "Ошибка при загрузке диаграмм: " + e.getMessage());
         }
     }
 

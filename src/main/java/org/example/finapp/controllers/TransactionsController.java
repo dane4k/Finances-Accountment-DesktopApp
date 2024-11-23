@@ -1,197 +1,129 @@
 package org.example.finapp.controllers;
 
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import org.example.finapp.database.DbHandler;
-import org.example.finapp.models.TransactionItem;
+import org.example.finapp.APIInteraction.ClientCategoryApi;
+import org.example.finapp.APIInteraction.ClientTransactionApi;
+import org.example.finapp.models.CategoryDTO;
+import org.example.finapp.models.TransactionDTO;
 
 import java.io.IOException;
-import java.net.URL;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.ResourceBundle;
 
-public class TransactionsController implements Initializable {
+public class TransactionsController {
 
+    @FXML
+    private TableView<TransactionDTO> transactionsTable;
+    @FXML
+    private TableColumn<TransactionDTO, String> amountColumn;
+    @FXML
+    private TableColumn<TransactionDTO, String> dateColumn;
+    @FXML
+    private TableColumn<TransactionDTO, String> typeColumn;
+    @FXML
+    private TableColumn<TransactionDTO, String> categoryColumn;
+    @FXML
+    private TableColumn<TransactionDTO, String> actionsColumn;
+    @FXML
+    private VBox addTransactionMenu;
+    @FXML
+    private TextField enterAmountField;
+    @FXML
+    private DatePicker enterDatePicker;
+    @FXML
+    private ComboBox<String> chooseTypeComboBox;
+    @FXML
+    private ComboBox<CategoryDTO> categoryComboBox;
+
+    @FXML
+    private Button submitTransactionButton;
+
+    @FXML
+    private Button openAddTransactionMenu;
 
     @FXML
     private Label usernameLabel;
 
-
-    @FXML
-    private VBox addTransactionMenu;
-
-    @FXML
-    private TextField enterAmountField;
-
-    @FXML
-    private DatePicker enterDatePicker;
-
-    @FXML
-    private ComboBox<String> chooseTypeComboBox;
-
-    @FXML
-    private ComboBox<String> categoryComboBox;
-
-
     @FXML
     private Button goHomeButton;
 
-    @FXML
-    private TableView<TransactionItem> transactionsTable;
-
-    @FXML
-    private TableColumn<TransactionItem, Double> amountColumn;
-
-
-    @FXML
-    private TableColumn<TransactionItem, LocalDate> dateColumn;
-
-
-    @FXML
-    private TableColumn<TransactionItem, String> typeColumn;
-
-
-    @FXML
-    private TableColumn<TransactionItem, String> categoryColumn;
-
-
-    @FXML
-    private TableColumn<TransactionItem, String> actionsColumn;
-
-
+    private ClientTransactionApi clientTransactionApi = new ClientTransactionApi();
+    private ObservableList<TransactionDTO> observableList;
     private String currentUsername;
-
-    private DbHandler dbHandler = new DbHandler();
-
-    /**
-     * инициализация страницы
-     * @param location для имплемента Initializable и инициализации страницы
-     * @param resources для имплемента Initializable и инициализации страницы
-     */
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        setupTransactionsTable();
-    }
+    private ClientCategoryApi clientCategoryApi = new ClientCategoryApi();
 
     /**
-     * создание и заполнение таблицы данными и кнопками
-     */
-    private void setupTransactionsTable() {
-        actionsColumn.setCellFactory(_ -> new TableCell<>() {
+     * заполнение таблицы и создание кнопки удаления
+      */
+    @FXML
+    public void initialize() {
+        observableList = FXCollections.observableArrayList();
+        transactionsTable.setItems(observableList);
+
+        amountColumn.setCellValueFactory(cellData -> new SimpleStringProperty(String.valueOf(cellData.getValue().getAmount())));
+        dateColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getDate().toString()));
+        typeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getIncome() ? "Доход" : "Расход"));
+        categoryColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getCategory() != null ? cellData.getValue().getCategory().getName() : "Без категории"));
+
+        actionsColumn.setCellValueFactory(cellData -> new SimpleStringProperty("Удалить"));
+        actionsColumn.setCellFactory(col -> new TableCell<TransactionDTO, String>() {
             private final Button deleteButton = new Button("Удалить");
-
-            {
-                deleteButton.setStyle(
-                        "-fx-background-color: red;" +
-                                "-fx-text-fill: white;" +
-                                "-fx-font-weight: bold;"
-                );
-            }
 
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) {
+                if (empty || item == null) {
                     setGraphic(null);
                 } else {
-                    TransactionItem transaction = getTableView().getItems().get(getIndex());
                     setGraphic(deleteButton);
-                    deleteButton.setOnAction(_ -> {
-                        try {
-                            deleteTransaction(transaction);
-                            loadTransactionsFromDatabase();
-                        } catch (SQLException e) {
-                            showAlert("Ошибка", "Не удалось удалить транзакцию");
-                            e.printStackTrace();
-                        }
+                    deleteButton.setStyle("-fx-background-color: #f44336; -fx-text-fill: white;");
+                    deleteButton.setOnAction(event -> {
+                        TransactionDTO transaction = getTableView().getItems().get(getIndex());
+                        deleteTransaction(transaction);
                     });
                 }
             }
         });
+
+        loadCategories();
     }
 
-
     /**
-     * обработка кнопки возврата на домашнюю страницу
+     * загрузка селектора категориями
      */
-    public void redirectToHomeButton() {
+    private void loadCategories() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/finapp/home.fxml"));
-            Parent root = loader.load();
-
-            THomeController homeController = loader.getController();
-            homeController.setCurrentUser(currentUsername);
-
-            Stage stage = (Stage) goHomeButton.getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.show();
-
+            List<CategoryDTO> categories = clientCategoryApi.getCategories(currentUsername);
+            ObservableList<CategoryDTO> categoryNames = FXCollections.observableArrayList(categories);
+            categoryComboBox.setItems(categoryNames);
         } catch (IOException e) {
+            showAlert("Ошибка", "Не удалось загрузить категории");
             e.printStackTrace();
-            showAlert("Ошибка", "Не удалось загрузить главную страницу");
         }
     }
 
-
     /**
-     * получение данных из таблицы бд transactions и заполнение таблицы fxml
-     * @throws SQLException исключение DbHandler
+     * сет текущего юзера
+     * @param username юзернейм
      */
-    private void loadTransactionsFromDatabase() throws SQLException {
-        ObservableList<TransactionItem> transactions = FXCollections.observableArrayList();
-
-        try (Connection connection = dbHandler.getDbConnection()) {
-            List<TransactionItem> transactionList = dbHandler.fetchTransactions(connection, currentUsername);
-            transactions.addAll(transactionList);
-
-            amountColumn.setCellValueFactory(cellData ->
-                    new SimpleObjectProperty<>(cellData.getValue().getAmount())
-            );
-
-            dateColumn.setCellValueFactory(cellData ->
-                    new SimpleObjectProperty<>(cellData.getValue().getDate())
-            );
-
-            typeColumn.setCellValueFactory(cellData ->
-                    new SimpleStringProperty(cellData.getValue().getType())
-            );
-
-            categoryColumn.setCellValueFactory(cellData ->
-                    new SimpleStringProperty(cellData.getValue().getCategory())
-            );
-            transactionsTable.setItems(transactions);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Ошибка", "Не удалось загрузить транзакции");
-        }
-    }
-
-
-    /**
-     * показать/спрятать меню добавления транзакции
-     */
-    @FXML
-    public void toggleTransactionMenu() {
-        addTransactionMenu.setVisible(!addTransactionMenu.isVisible());
+    public void setCurrentUser (String username) {
+        this.currentUsername = username;
+        setUsername(username);
+        loadTransactions();
+        loadCategories();
     }
 
     /**
-     * установка имени юзера в лейбл
-     * @param username имя пользователя
+     * сет лейбла
+     * @param username
      */
     public void setUsername(String username) {
         if (username != null) {
@@ -200,121 +132,90 @@ public class TransactionsController implements Initializable {
     }
 
     /**
-     * установка имени юзера в currentUsername
-     * @param username имя пользователя
-     */
-    public void setCurrentUser(String username) {
-        this.currentUsername = username;
-        setUsername(username);
-        List<String> categoriesToChoose = fetchCategoriesFromDatabase();
-        categoryComboBox.getItems().addAll(categoriesToChoose);
-
-        try {
-            loadTransactionsFromDatabase();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Ошибка", "Не удалось загрузить транзакции");
-        }
-    }
-
-
-    /**
-     * заполнение списка категориями по юзернейму через DbHandler
-     * @return список категорий
-     */
-    private List<String> fetchCategoriesFromDatabase() {
-        List<String> categories = new ArrayList<>();
-        try (Connection connection = dbHandler.getDbConnection();) {
-            dbHandler.fetchCategories(connection, currentUsername, categories);
-        } catch (SQLException e) {
-            showAlert("Ошибка", "Ошибка при получении категорий");
-        }
-        return categories;
-    }
-
-
-    /**
-     * добавление введенной транзакции в БД
-     * @throws SQLException исключение DbHandler
+     * выдвижение меню
      */
     @FXML
-    private void addTransactionToDatabase() throws SQLException {
-        String amountStr = enterAmountField.getText();
-        String dateStr = enterDatePicker.getValue() != null ? enterDatePicker.getValue().toString() : null;
-        String typeStr = chooseTypeComboBox.getValue();
-        String categoryStr = categoryComboBox.getValue();
+    public void toggleTransactionMenu() {
+        addTransactionMenu.setVisible(!addTransactionMenu.isVisible());
+    }
 
-        if (amountStr.isEmpty() || dateStr == null || typeStr == null || categoryStr == null) {
-            showAlert("Ошибка", "Заполните все поля.");
-            return;
+    /**
+     * загрузка транзакций в observableList
+     */
+    private void loadTransactions() {
+        try {
+            List<TransactionDTO> transactions = clientTransactionApi.getTransactions(currentUsername);
+            observableList.clear();
+            observableList.addAll(transactions);
+        } catch (IOException e) {
+            showAlert("Ошибка", "Не удалось загрузить транзакции");
+            e.printStackTrace();
         }
+    }
 
-        double amount;
+    /**
+     * добавление транзакции
+     */
+    @FXML
+    public void addTransactionToDatabase() {
+        TransactionDTO transaction = new TransactionDTO();
+        transaction.setAmount(Double.parseDouble(enterAmountField.getText()));
+        transaction.setDate(enterDatePicker.getValue());
+        transaction.setIncome(chooseTypeComboBox.getValue().equals("Доход"));
+        transaction.setCategory(categoryComboBox.getValue());
 
         try {
-            amount = Double.parseDouble(amountStr);
-        } catch (NumberFormatException e) {
-            showAlert("Ошибка", "Некорректная сумма");
-            return;
-        }
-
-        LocalDate date = LocalDate.parse(dateStr);
-
-
-        boolean type;
-
-        if (typeStr.equals("Доход")) {
-            type = true;
-        } else {
-            type = false;
-        }
-
-        int userId;
-
-        try (Connection connection = dbHandler.getDbConnection()) {
-            userId = dbHandler.getUserIdByUsername(connection, currentUsername);
-        } catch (SQLException e) {
+            String responseMessage = clientTransactionApi.addTransaction(currentUsername, transaction);
+            showAlert("Результат", responseMessage);
+            loadTransactions();
+        } catch (IOException e) {
+            showAlert("Ошибка", "Не удалось добавить транзакцию");
             e.printStackTrace();
-            return;
         }
-
-        int categoryId;
-
-        try (Connection connection = dbHandler.getDbConnection()) {
-            categoryId = dbHandler.getCategoryIdByCategoryName(connection, categoryStr);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return;
-        }
-
-
-        try (Connection connection = dbHandler.getDbConnection()) {
-            dbHandler.addTransaction(connection, userId, amount, date, type, categoryId);
-            showAlert("a", "транзакция добавлена");
-            clearAllInputFields();
-            loadTransactionsFromDatabase();
-            return;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Ошибка", "ошибка");
-        }
-
     }
 
     /**
-     * очистка полей ввода и выбора после добавления транзакции
+     * редирект на домашнюю
+     * @throws IOException
      */
-    private void clearAllInputFields() {
-        enterAmountField.clear();
-        enterDatePicker.setValue(null);
-        chooseTypeComboBox.getSelectionModel().clearSelection();
-        categoryComboBox.getSelectionModel().clearSelection();
+    @FXML
+    public void goHome() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/finapp/home.fxml"));
+        Parent root = loader.load();
+
+        HomeController homeController = loader.getController();
+        homeController.setCurrentUser (currentUsername);
+
+        Stage stage = (Stage) goHomeButton.getScene().getWindow();
+        stage.setScene(new Scene(root));
+        stage.show();
     }
 
     /**
-     * уведомление
-     * @param title название
-     * @param content содержание
+     * удаление транзакции
+     * @param transaction
+     */
+    @FXML
+    public void deleteTransaction(TransactionDTO transaction) {
+        if (transaction == null) {
+            showAlert("Ошибка", "Выберите транзакцию для удаления");
+            return;
+        }
+
+        try {
+            String responseMessage = clientTransactionApi.deleteTransaction(currentUsername, transaction.getId());
+            showAlert("Результат", responseMessage);
+            loadTransactions();
+        } catch (IOException e) {
+            showAlert("Ошибка", "Не удалось удалить транзакцию");
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * окно с ошибкой или не ошибкой
+     * @param title название окна
+     * @param content содержание окна
      */
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -322,17 +223,6 @@ public class TransactionsController implements Initializable {
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
-    }
-
-    /**
-     * обработчик удаления транзакции
-     * @param transaction объект транзакции TransactionItem
-     * @throws SQLException исключение DbHandler
-     */
-    private void deleteTransaction(TransactionItem transaction) throws SQLException {
-        try (Connection connection = dbHandler.getDbConnection()) {
-            dbHandler.deleteTransaction(connection, currentUsername, transaction);
-        }
     }
 
 }

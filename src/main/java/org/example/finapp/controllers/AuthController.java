@@ -1,15 +1,12 @@
 package org.example.finapp.controllers;
 
 import javafx.fxml.FXML;
-import javafx.scene.Node;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import org.example.finapp.APIInteraction.ApiClient;
+import org.example.finapp.APIInteraction.ClientAuthApi;
 import org.example.finapp.utils.SceneUtil;
 
-import java.awt.event.ActionEvent;
 import java.io.IOException;
 
 
@@ -26,7 +23,7 @@ public class AuthController {
     @FXML
     private Button loginButton;
 
-    ApiClient apiClient = new ApiClient();
+    ClientAuthApi clientAuthApi = new ClientAuthApi();
     SceneUtil sceneUtil = new SceneUtil();
 
     @FXML
@@ -39,62 +36,62 @@ public class AuthController {
         sceneUtil.navigateTo(registerButton, "register", null);
     }
 
-
+    /**
+     * регистрация юзера
+     */
     @FXML
     private void registerUser() {
         String username = userLogin.getText();
         String password = userPassword.getText();
 
         if (username.isEmpty() || password.isEmpty()) {
-            showAlert("Ошибка", "Пожалуйста, заполните все поля");
+            sceneUtil.showAlert("Ошибка", "Пожалуйста, заполните все поля");
             return;
         }
 
         try {
-            String responseMessage = apiClient.addUser(username, password);
+            String responseMessage = clientAuthApi.addUser(username, password);
 
-            showAlert("Результат регистрации", responseMessage);
+            sceneUtil.showAlert("Результат регистрации", responseMessage);
             redirectToLogin();
             clearFields();
         } catch (Exception e) {
-            showAlert("Ошибка", "Не удалось зарегистрировать пользователя");
+            sceneUtil.showAlert("Ошибка", "Не удалось зарегистрировать пользователя");
             e.printStackTrace();
         }
     }
 
+
+    /**
+     * вход
+     */
     @FXML
-    private void logInUser () {
+    private void logInUser() {
         String username = userLogin.getText();
         String password = userPassword.getText();
 
         if (username.isEmpty() || password.isEmpty()) {
-            showAlert("Ошибка", "Пожалуйста, заполните все поля");
+            sceneUtil.showAlert("Ошибка", "Пожалуйста, заполните все поля");
             return;
         }
 
         try {
-            String responseMessage = apiClient.logInUser (username, password);
-            showAlert("Результат входа", responseMessage);
+            String responseMessage = clientAuthApi.logInUser(username, password);
+            sceneUtil.showAlert("Результат входа", responseMessage);
 
-            // Проверяем, успешен ли вход
             if (responseMessage.equals("Успешный вход")) {
-                sceneUtil.navigateTo(loginButton, "", null); // Переход только при успешном входе
+                sceneUtil.navigateTo(loginButton, "home", username);
                 clearFields();
             }
         } catch (Exception e) {
-            showAlert("Ошибка", "Не удалось войти в систему");
+            sceneUtil.showAlert("Ошибка", "Не удалось войти в систему");
             e.printStackTrace();
         }
     }
 
-    private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
-
+    /**
+     * очищение полей ввода
+     */
     private void clearFields() {
         userLogin.clear();
         userPassword.clear();
