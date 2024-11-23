@@ -1,0 +1,6 @@
+module:org.example.finapp
+org.example.finapp
+org.example.finapp.APIInteraction
+org.example.finapp.controllers
+org.example.finapp.models
+org.example.finapp.utils
